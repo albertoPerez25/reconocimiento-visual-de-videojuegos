@@ -1,5 +1,5 @@
-%%+: video largo (walkthrough completo o casi)
-%%-: video corto
+%% +: video largo (walkthrough completo o casi)
+%% -: video corto
 
 //GOD_OF_WAR_1
 +https://www.youtube.com/watch?v=Lbj5C-Sw2_A&t=19021s
@@ -122,7 +122,6 @@
 +https://www.youtube.com/watch?v=HGvY6JO23r4
 +https://www.youtube.com/watch?v=8qf3xDSs8Vs&t=341s
 
-
 //DEATH_STRANDING
 +https://www.youtube.com/watch?v=n7hPTG5Ue1E
 +https://www.youtube.com/watch?v=AFJhSzmMbRI
@@ -130,4 +129,76 @@
 +https://www.youtube.com/watch?v=CXA0CMr3hq0
 +https://www.youtube.com/watch?v=2_p9wLMNOeM
 
+//MINECRAFT
++https://www.youtube.com/watch?v=Dy3VtjcHdCs
++https://www.youtube.com/watch?v=c6FAO3-zvhE
++https://www.youtube.com/watch?v=IbRp3swHmSo
++https://www.youtube.com/watch?v=dX1u1VIrZzw
++https://www.youtube.com/watch?v=p78fEqhx7QU
++https://www.youtube.com/watch?v=V7rIxeSzJlk
++https://www.youtube.com/watch?v=IvuefbvVmcI
+-https://www.youtube.com/watch?v=0vPrZIqOEFw&list=PLSbDMtNBmYTtYBkJNYiZl3NIrpVY9g4xz
+-https://www.youtube.com/watch?v=mqlB9xWKY9A&list=PLSbDMtNBmYTtYBkJNYiZl3NIrpVY9g4xz&index=16
++https://www.youtube.com/watch?v=6Yfe-k4qsdY
 
+//HOLLOW_KNIGHT
++https://www.youtube.com/watch?v=LNjXu87zmzg
++https://www.youtube.com/watch?v=lEW0YTORA5E
++https://www.youtube.com/watch?v=G1atkq4C1KU
++https://www.youtube.com/watch?v=AwtLj3FUeW0
++https://www.youtube.com/watch?v=e_jjd5g9q_w
+
+//SILKSONG
++https://www.youtube.com/watch?v=PgUssv-fV7w
++https://www.youtube.com/watch?v=ujgShmcSpdE
++https://www.youtube.com/watch?v=RKoR3OGUzZM
++https://www.youtube.com/watch?v=KTd_qTWnfyk
++https://www.youtube.com/watch?v=xSKxYgtMIxw
+
+//UNDERTALE
++https://www.youtube.com/watch?v=lf8Aldrs77A
++https://www.youtube.com/watch?v=1Pnt92a4fc4
++https://www.youtube.com/watch?v=bVmq0TXelDs
+
+//POKEMON_RED
++https://www.youtube.com/watch?v=WjHDuVA5k5A
++https://www.youtube.com/watch?v=pvH5hWc7Mes
++https://www.youtube.com/watch?v=OHHSQxn_IOY
+
+//POKEMON_X_Y
++https://www.youtube.com/watch?v=zDDc_b8eG5Y
++https://www.youtube.com/watch?v=kxhjhFMJoB8
+
+//POKEMON_EMERALD
++https://www.youtube.com/watch?v=d2pNOcWuRlk
++https://www.youtube.com/watch?v=wtiNKE4VqOA
++https://www.youtube.com/watch?v=owRVh3-eZxM
+
+//CONTRA
+-https://www.youtube.com/watch?v=888vbCs9wLY
+-https://www.youtube.com/watch?v=2mWZlNOzdv8
+-https://www.youtube.com/watch?v=CewtWdK4aI4
+-https://www.youtube.com/watch?v=qXcVojj2GXk
+
+//PUNCH_OUT_NES
+-https://www.youtube.com/watch?v=rcJneBFV9cI
+-https://www.youtube.com/watch?v=RNmCWIbmWBU
+-https://www.youtube.com/watch?v=TcHfrhFXPyI
+
+//STRAY
++https://www.youtube.com/watch?v=PebfjpFkRbw
++https://www.youtube.com/watch?v=2YeUJJ4xAC4
++https://www.youtube.com/watch?v=FAboExYvllw
++https://www.youtube.com/watch?v=BJQ4LqMjSps
+
+//RED_DEAD_REDEMPTION_2
++https://www.youtube.com/watch?v=NHdwXaIrv7I
++https://www.youtube.com/watch?v=VqohKbQZ698
+
+//RED_DEAD_REDEMPTION_1
++https://www.youtube.com/watch?v=zuik7UCz8_o
++https://www.youtube.com/watch?v=CeVvuyXuAJk
++https://www.youtube.com/watch?v=0zvPMrrps6o
++https://www.youtube.com/watch?v=nq-WOMtIRPg
+
+FIN
