@@ -3,7 +3,7 @@ import os
 from moviepy.editor import VideoFileClip
 
 # Carpeta con los vídeos
-VIDEO_FOLDER = "videos"
+VIDEO_FOLDER = "./"
 # Carpeta donde se guardarán las imágenes
 OUTPUT_FOLDER = "images"
 
