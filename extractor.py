@@ -1,62 +1,106 @@
-import cv2
 import os
-from moviepy.editor import VideoFileClip
+import subprocess
+import json
+from pathlib import Path
 
-# Carpeta con los vídeos
-VIDEO_FOLDER = "./"
-# Carpeta donde se guardarán las imágenes
-OUTPUT_FOLDER = "images"
+def get_video_duration(video_path):
+    """Obtiene la duración del vídeo en segundos usando ffprobe."""
+    try:
+        cmd = [
+            'ffprobe',
+            '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'json',
+            video_path
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        return float(data['format']['duration'])
+    except Exception as e:
+        print(f"Error obteniendo duración de {video_path}: {e}")
+        return None
 
-# Crear carpeta images si no existe
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
-# Obtener lista de vídeos
-videos = sorted([f for f in os.listdir(VIDEO_FOLDER)
-                 if f.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".mpeg"))])
-
-for video_index, video_name in enumerate(videos, start=1):
-    video_path = os.path.join(VIDEO_FOLDER, video_name)
-
-    # Obtener duración del vídeo
-    clip = VideoFileClip(video_path)
-    duration_seconds = clip.duration
-
-    # Elegir intervalo
-    if duration_seconds < 3600:
-        interval = 30      # cada 30s
+def extract_frames(video_path, output_dir, video_number):
+    """Extrae fotogramas del vídeo según su duración."""
+    duration = get_video_duration(video_path)
+    
+    if duration is None:
+        return
+    
+    # Determinar intervalo según duración (1 hora = 3600 segundos)
+    if duration < 1800: # Menos de media hora
+        interval = 10  # 10 segundos
+    elif duration >= 1800 and duration < 7200: # Entre media hora y 2 horas
+        interval = 30  # 30 segundos
+    elif duration >= 7200 and duration < 14400: # Entre 2 horas y 4 horas
+        interval = 60 # 1 minuto
     else:
-        interval = 60      # cada 1 min
-    clip.close()
+        interval = 120 # 2 minutos
+    
+    print(f"Vídeo {video_number}: {os.path.basename(video_path)}")
+    print(f"  Duración: {duration:.2f}s ({duration/60:.2f} min)")
+    print(f"  Intervalo: {interval}s")
+    
+    # Calcular número de fotogramas a extraer
+    num_frames = int(duration / interval)
+    
+    # Extraer fotogramas usando ffmpeg
+    for frame_num in range(num_frames + 1):
+        timestamp = frame_num * interval
+        
+        # Formato: XXXXXXX_Y.jpg
+        output_filename = f"{frame_num:07d}_{video_number}.jpg"
+        output_path = os.path.join(output_dir, output_filename)
+        
+        cmd = [
+            'ffmpeg',
+            '-ss', str(timestamp),
+            '-i', video_path,
+            '-frames:v', '1',
+            '-q:v', '2',  # Calidad alta
+            '-y',  # Sobrescribir si existe
+            output_path
+        ]
+        
+        try:
+            subprocess.run(cmd, capture_output=True, check=True)
+            print(f"  ✓ Fotograma {frame_num} extraído ({timestamp}s)")
+        except subprocess.CalledProcessError as e:
+            print(f"  ✗ Error extrayendo fotograma {frame_num}: {e}")
+    
+    print()
 
-    # Cargar vídeo con OpenCV
-    cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS)
+def main():
+    # Directorio con los vídeos (directorio actual)
+    video_dir = "."
+    
+    # Directorio de salida para las imágenes
+    output_dir = "images"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Extensiones de vídeo comunes
+    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.m4v', '.webm'}
+    
+    # Obtener lista de vídeos
+    video_files = []
+    for file in os.listdir(video_dir):
+        if Path(file).suffix.lower() in video_extensions:
+            video_files.append(file)
+    
+    video_files.sort()  # Ordenar alfabéticamente
+    
+    if not video_files:
+        print("No se encontraron vídeos en el directorio actual.")
+        return
+    
+    print(f"Se encontraron {len(video_files)} vídeos.\n")
+    
+    # Procesar cada vídeo
+    for idx, video_file in enumerate(video_files, start=1):
+        video_path = os.path.join(video_dir, video_file)
+        extract_frames(video_path, output_dir, idx)
+    
+    print(f"✓ Proceso completado. Imágenes guardadas en '{output_dir}/'")
 
-    if fps == 0:
-        print(f"Error leyendo FPS en {video_name}")
-        continue
-
-    frame_interval = int(fps * interval)
-    frame_counter = 0
-    extracted_counter = 0
-
-    print(f"\nProcesando vídeo {video_index}: {video_name}")
-    print(f"Duración: {duration_seconds:.2f}s → Intervalo: {interval}s")
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        # Guardar cada N frames
-        if frame_counter % frame_interval == 0:
-            extracted_counter += 1
-            filename = f"{extracted_counter:07d}_{video_index}.jpg"
-            output_path = os.path.join(OUTPUT_FOLDER, filename)
-            cv2.imwrite(output_path, frame)
-
-        frame_counter += 1
-
-    cap.release()
-
-print("\nProceso completado.")
+if __name__ == "__main__":
+    main()
