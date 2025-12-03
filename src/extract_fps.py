@@ -10,7 +10,7 @@ from threading import Lock
 
 # ================= CONFIGURACIÓN =================
 class Config:
-    EXTERNAL_DIR = "/mnt/ntfs/kosos/alber/Linux/Dataset/"
+    EXTERNAL_DIR = "../DatasetVideos/"
     INPUT_DIR = EXTERNAL_DIR       # Carpeta raíz donde buscar videos
     OUTPUT_SUFFIX = "_frames"    # Sufijo para la carpeta de salida
     MAX_WORKERS = 4              # Número de procesos simultáneos

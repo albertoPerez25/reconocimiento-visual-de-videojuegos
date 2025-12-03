@@ -15,7 +15,7 @@ class Config:
     # Intenta bajar el mejor video que sea menor o igual a 480p.
     # Si no puede, baja el mejor formato combinado menor o igual a 480p.
     FORMAT_STR = f'bestvideo[height<={VIDEO_HEIGHT}]'
-    EXTERNAL_OUTPUT_DIR = "/mnt/ntfs/kosos/alber/Linux/Dataset/"
+    EXTERNAL_OUTPUT_DIR = "../DatasetVideos/"
 
 # ================= LÓGICA DE ESTADO =================
 class Stats:
