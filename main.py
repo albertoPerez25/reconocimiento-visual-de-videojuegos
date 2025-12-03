@@ -98,7 +98,7 @@ menu_modelo.agregar_opcion("Transfer Learning", saludar)
 
 menu_entrenamiento = Menu("Herramientas de entrenamiento")
 menu_entrenamiento.agregar_opcion("Entrenar modelo", menu_modelo)
-menu_entrenamiento.agregar_opcion("Generación de dataset", saludar)
+menu_entrenamiento.agregar_opcion("Generación de dataset", menu_dataset)
 
 # --- Submenú de Configuración ---
 menu_predecir = Menu("Predicción de imágenes")
