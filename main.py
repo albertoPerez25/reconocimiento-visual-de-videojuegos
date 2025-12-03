@@ -80,18 +80,9 @@ class Menu:
 def saludar():
     print("¡Hola! Has ejecutado una función simple.")
 
-def calcular_suma():
-    try:
-        a = float(input("Introduce el primer número: "))
-        b = float(input("Introduce el segundo número: "))
-        print(f"El resultado es: {a + b}")
-    except ValueError:
-        print("Error: Debes introducir números.")
-
-def mostrar_info_sistema():
-    import sys
-    print(f"Plataforma: {sys.platform}")
-    print(f"Versión de Python: {sys.version}")
+def predict_efficientnet():
+    path = input("Introduce la ruta de la imagen a clasificar: ")
+    inferencia.predict_image(path)
 
 # 2. Construimos la estructura de Menús
 
@@ -113,7 +104,7 @@ menu_entrenamiento.agregar_opcion("Generación de dataset", saludar)
 menu_predecir = Menu("Predicción de imágenes")
 menu_predecir.agregar_opcion("MLP (Básico)", saludar)
 menu_predecir.agregar_opcion("CNN (Propia)", saludar)
-menu_predecir.agregar_opcion("Transfer Learning", saludar)
+menu_predecir.agregar_opcion("Transfer Learning", predict_efficientnet)
 
 # --- Menú Principal ---
 principal = Menu("Menú Principal - ¿Qué deseas hacer?") # Aquí cambiamos la tecla de salida a 'x'
