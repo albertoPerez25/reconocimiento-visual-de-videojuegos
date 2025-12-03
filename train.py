@@ -1,200 +1,171 @@
 import os
+
+# Configuración de entorno
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers, models, callbacks
-from tensorflow.keras.applications import EfficientNetV2B0
-from transformers import TFViTModel
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
+import time
 import pathlib
 import PIL.Image
-import time
-from sklearn.metrics import classification_report, confusion_matrix
-import gc 
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, callbacks
+from tensorflow.keras.applications import EfficientNetV2B0
+
 
 # Reproducibilidad
 SEED = 2025
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
 
-print(f"TensorFlow Version: {tf.__version__}")
-print(f"GPU Available: {len(tf.config.list_physical_devices('GPU')) > 0}")
-
-
-KAGGLE_PATH = '/kaggle/input/eurosat-dataset/EuroSAT'
-# Ruta que tendria en local.
-LOCAL_PATH = './images_dataset' 
-
-# Kaggle siempre define la variable de entorno 'KAGGLE_KERNEL_RUN_TYPE'
-if os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None:
-    print("Entorno de Kaggle")
-    data_dir = KAGGLE_PATH
-else:
-    data_dir = LOCAL_PATH
-    print("Entorno Local:",data_dir)
-    
-data_dir = pathlib.Path(data_dir)
-
-# Verificación del contenido
-all_images = list(data_dir.glob('*/*.jpg'))
-image_count = len(all_images)
-print(f"Total de imágenes encontradas: {image_count}")
-
-# Verificación de dimensiones reales
-first_image = PIL.Image.open(all_images[0])
-print(f"Dimensiones reales de una imagen de muestra: {first_image.size}")
-print(f"Formato de imagen: {first_image.format}")
-
-# Parámetros Globales
-# Ajustamos las constantes al tamaño real detectado (debería ser 64x64)
-BATCH_SIZE = 16
+# Constantes de Configuración
 IMG_HEIGHT = 480
 IMG_WIDTH = 854
+BATCH_SIZE = 16
 
+def prepare_dataset():
+    """
+    Carga, divide y optimiza el dataset de imágenes.
+    Detecta automáticamente si se ejecuta en Kaggle o en Local.
 
-# Cargamos el dataset completo sin dividir inicialmente
-full_ds = tf.keras.utils.image_dataset_from_directory(
-    data_dir,
-    seed=SEED,
-    image_size=(IMG_HEIGHT, IMG_WIDTH),
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    label_mode='int'
-)
-
-class_names = full_ds.class_names
-print(f"Clases encontradas: {class_names}")
-
-# Calculamos el número de batches
-n_batches = tf.data.experimental.cardinality(full_ds).numpy()
-
-train_size = int(0.7 * n_batches)
-val_size = int(0.15 * n_batches)
-test_size = n_batches - train_size - val_size
-
-print(f"Batches -> Train: {train_size}, Val: {val_size}, Test: {test_size}")
-
-# Realizar la división usando take() y skip()
-train_ds = full_ds.take(train_size)
-remaining_ds = full_ds.skip(train_size)
-val_ds = remaining_ds.take(val_size)
-test_ds = remaining_ds.skip(val_size)
-
-
-AUTOTUNE = tf.data.AUTOTUNE
-
-train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
-test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
-
-
-
-
-######
-
-
-
-def plot_history(history, title="Model History"):
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-    epochs_range = range(len(acc))
-
-    plt.figure(figsize=(12, 5))
+    Returns:
+        tuple: (train_ds, val_ds, class_names)
+            - train_ds: Dataset de entrenamiento optimizado.
+            - val_ds: Dataset de validación optimizado.
+            - class_names: Lista con los nombres de las clases.
+    """
+    print("--- Preparando Dataset ---")
     
-    # Gráfica de Precisión
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.title(f'{title} - Accuracy')
-    plt.legend(loc='lower right')
-    plt.grid(True)
+    # Configuración de rutas
+    KAGGLE_PATH = '/kaggle/input/videojuegos/images_dataset'
+    LOCAL_PATH = './images_dataset' 
 
-    # Gráfica de Pérdida
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.title(f'{title} - Loss')
-    plt.legend(loc='upper right')
-    plt.grid(True)
-    plt.show()
+    if os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None:
+        print("Entorno detectado: Kaggle")
+        data_dir = pathlib.Path(KAGGLE_PATH)
+    else:
+        print("Entorno detectado: Local")
+        data_dir = pathlib.Path(LOCAL_PATH)
+    
+    # Carga inicial
+    full_ds = tf.keras.utils.image_dataset_from_directory(
+        data_dir,
+        seed=SEED,
+        image_size=(IMG_HEIGHT, IMG_WIDTH),
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        label_mode='int'
+    )
 
+    class_names = full_ds.class_names
+    print(f"Clases encontradas: {class_names}")
 
-# Usar un modelo que ya sabe ver (pre-entrenado por Google) y adaptarlo.
+    # División del dataset (Train 70% / Val 15% / Test 15%)
+    n_batches = tf.data.experimental.cardinality(full_ds).numpy()
+    train_size = int(0.7 * n_batches)
+    val_size = int(0.15 * n_batches)
+
+    train_ds = full_ds.take(train_size)
+    remaining_ds = full_ds.skip(train_size)
+    val_ds = remaining_ds.take(val_size)
+    
+    # Optimización (Cache & Prefetch)
+    AUTOTUNE = tf.data.AUTOTUNE
+    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+
+    return train_ds, val_ds, class_names
 
 def build_transfer_model():
+    """
+    Construye la arquitectura del modelo basada en EfficientNetV2B0.
+    Aplica Data Augmentation y congela la base pre-entrenada.
+
+    Returns:
+        tuple: (model, base_model)
+            - model: El modelo Keras completo compilado.
+            - base_model: La capa base de EfficientNet (para descongelar luego).
+    """
     inputs = keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
     
+    # Data Augmentation
     x = layers.RandomFlip("horizontal_and_vertical")(inputs)
     x = layers.RandomRotation(0.2)(x)
     x = layers.RandomZoom(0.1)(x)
     
-    # EfficientNet ya trae de serie la normalización de pixeles.
-    
+    # Modelo Base (Pre-entrenado)
     base_model = EfficientNetV2B0(
-        include_top=False, # Le quitamos la capa final para poner la nuestra final.
-        weights='imagenet', # Cargamos los conocimientos previos 
+        include_top=False, 
+        weights='imagenet', 
         input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)
     )
     
-    # Freezing para que no entrene nada nuevo
-    base_model.trainable = False
+    base_model.trainable = False # Congelado inicial
     
-    # Conectamos nuestra entrada al modelo base
-    # training=False para que las estadísticas internas del modelo sean con nuestros datos
     x = base_model(x, training=False)
-    
-
-    # El modelo base nos devuelve un montón de mapas de características
-    # Con esto promediamos todo en un solo vector de 1280 números por imagen.
     x = layers.GlobalAveragePooling2D()(x) 
-    x = layers.Dropout(0.2)(x) # Apagamos neuronas al azar para evitar overfitting
-    outputs = layers.Dense(10, activation='softmax')(x) # 10 clases finales
+    x = layers.Dropout(0.2)(x) 
+    outputs = layers.Dense(10, activation='softmax')(x) 
     
     model = keras.Model(inputs, outputs, name="Transfer_EfficientNetV2")
     return model, base_model
 
+def run_feature_extraction(model, train_ds, val_ds):
+    """
+    Fase 1: Feature Extraction.
+    Entrena solo las capas superiores (clasificador) manteniendo la base congelada.
 
-def train_model():
-    transfer_model, base_model = build_transfer_model()
-    transfer_model.summary()
+    Args:
+        model: Modelo Keras construido.
+        train_ds: Dataset de entrenamiento.
+        val_ds: Dataset de validación.
 
-    transfer_model.compile(
+    Returns:
+        History: Objeto history del entrenamiento.
+    """
+    print("\n--- Fase 1: Feature Extraction ---")
+    
+    model.compile(
         optimizer='adam',
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
     )
 
     callbacks_transfer = [
-        # Si no mejora en 5 capas se para
         callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
         callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
     ]
 
-    print("\nFeature Extraction")
-    start_time_tl = time.time()
-
-    history_tl = transfer_model.fit(
+    history = model.fit(
         train_ds,
-        epochs=20, # aprende rápido por lo que no necesitamos un numero alto
+        epochs=20,
         validation_data=val_ds,
         callbacks=callbacks_transfer
     )
+    return history
 
-    # FineTuning 
+def run_fine_tuning(model, base_model, history_phase1, train_ds, val_ds):
+    """
+    Fase 2: Fine Tuning.
+    Descongela el modelo base y re-entrena con un Learning Rate muy bajo.
 
-    # Descongelamos
+    Args:
+        model: Modelo Keras actual.
+        base_model: Referencia al modelo base dentro del modelo principal.
+        history_phase1: Historial de la fase 1 (para continuar épocas).
+        train_ds: Dataset de entrenamiento.
+        val_ds: Dataset de validación.
+
+    Returns:
+        History: Objeto history del fine tuning.
+    """
+    print("\n--- Fase 2: Fine Tuning ---")
+    
     base_model.trainable = True
 
-    # Re-compilamos Low Learning Rate
-    # Usamos una velocidad de aprendizaje muy pequeña (1e-5).
-    # Si le ponemos una velocidad mas alta corremos el riesgo de sobreescribir aprendizaje que era correcto
-    transfer_model.compile(
+    # LR muy bajo para no romper pesos (1e-5)
+    model.compile(
         optimizer=keras.optimizers.Adam(1e-5),
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
@@ -202,73 +173,100 @@ def train_model():
 
     callbacks_finetune = [
         callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
-        # Seguimos guardando si superamos el récord
         callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
     ]
 
-    print("\nFineTuning")
-    history_finetune = transfer_model.fit(
+    history = model.fit(
         train_ds,
         epochs=20, 
-        initial_epoch=history_tl.epoch[-1],
+        initial_epoch=history_phase1.epoch[-1],
         validation_data=val_ds,
         callbacks=callbacks_finetune
     )
+    return history
 
-    end_time_tl = time.time()
-    tl_training_time = end_time_tl - start_time_tl
-    print(f"\nTiempo total (Extraction + FineTuning): {tl_training_time:.2f} segundos")
-
+def plot_combined_history(history_tl, history_finetune):
+    """
+    Combina y grafica los historiales de entrenamiento de ambas fases.
+    Muestra una línea vertical donde comenzó el Fine Tuning.
+    """
     acc = history_tl.history['accuracy'] + history_finetune.history['accuracy']
     val_acc = history_tl.history['val_accuracy'] + history_finetune.history['val_accuracy']
     loss = history_tl.history['loss'] + history_finetune.history['loss']
     val_loss = history_tl.history['val_loss'] + history_finetune.history['val_loss']
 
-    # Graficamos
     plt.figure(figsize=(12, 5))
+    
+    # Gráfica de Accuracy
     plt.subplot(1, 2, 1)
     plt.plot(acc, label='Training Accuracy')
     plt.plot(val_acc, label='Validation Accuracy')
-    plt.plot([len(history_tl.history['accuracy'])-1,len(history_tl.history['accuracy'])-1], 
-            plt.ylim(), label='Inicio Fine Tuning', ls='--') 
+    # Línea divisoria
+    plt.plot([len(history_tl.history['accuracy'])-1, len(history_tl.history['accuracy'])-1], 
+            plt.ylim(), label='Inicio Fine Tuning', ls='--', color='green') 
     plt.legend(loc='lower right')
     plt.title('Transfer Learning: Evolución de Precisión')
     plt.grid(True)
 
+    # Gráfica de Loss
     plt.subplot(1, 2, 2)
     plt.plot(loss, label='Training Loss')
     plt.plot(val_loss, label='Validation Loss')
-    plt.plot([len(history_tl.history['loss'])-1,len(history_tl.history['loss'])-1], 
-            plt.ylim(), label='Inicio Fine Tuning', ls='--')
+    plt.plot([len(history_tl.history['loss'])-1, len(history_tl.history['loss'])-1], 
+            plt.ylim(), label='Inicio Fine Tuning', ls='--', color='green')
     plt.legend(loc='upper right')
     plt.title('Transfer Learning: Evolución de Pérdida')
     plt.grid(True)
+    
     plt.show()
+    return val_acc
 
-    # Comparativa 
-
-    # Intentamos recuperar métricas de los modelos anteriores (si existen en memoria)
-    try:
-        mlp_acc = max(history_mlp.history['val_accuracy'])
-        cnn_acc = max(history_cnn.history['val_accuracy'])
-        mlp_par = mlp_model.count_params()
-        cnn_par = cnn_model.count_params()
-    except NameError:
-        mlp_acc, cnn_acc, mlp_par, cnn_par = 0, 0, 0, 0 # Ponemos ceros si no se corrieron antes
-
-    tl_acc = max(val_acc)
-    tl_par = transfer_model.count_params()
-
+def print_final_report(model, training_time, final_acc):
+    """
+    Imprime un resumen final exclusivo del modelo entrenado.
+    """
+    params = model.count_params()
+    
     print("\n" + "="*60)
-    print("      COMPARATIVA FINAL DE ARQUITECTURAS")
+    print("      REPORTE FINAL: TRANSFER LEARNING (EfficientNetV2)")
     print("="*60)
-    print(f"{'Modelo':<20} | {'Parámetros':<12} | {'Val Acc':<10} | {'Tiempo(s)':<10}")
-    print("-" * 60)
-    print(f"{'MLP (Básico)':<20} | {mlp_par:<12,} | {mlp_acc:.4f}     | {mlp_training_time if 'mlp_training_time' in locals() else 0:.1f}")
-    print(f"{'CNN (Propia)':<20} | {cnn_par:<12,} | {cnn_acc:.4f}     | {cnn_training_time if 'cnn_training_time' in locals() else 0:.1f}")
-    print(f"{'Transfer Learning':<20} | {tl_par:<12,} | {tl_acc:.4f}     | {tl_training_time:.1f}")
-    print("-" * 60)
+    print(f"Arquitectura Base: EfficientNetV2B0")
+    print(f"Parámetros Totales: {params:,}")
+    print(f"Tiempo Total:       {training_time:.2f} segundos")
+    print(f"Mejor Val Accuracy: {final_acc:.4f}")
+    print("="*60)
+
+def main_pipeline():
+    """
+    Función orquestadora que ejecuta todo el flujo de trabajo.
+    """
+    # 1. Preparar Datos
+    train_ds, val_ds, _ = prepare_dataset()
+    
+    # 2. Construir Modelo
+    transfer_model, base_model = build_transfer_model()
+    transfer_model.summary()
+    
+    start_time = time.time()
+    
+    # 3. Entrenamiento Fase 1 (Feature Extraction)
+    history_tl = run_feature_extraction(transfer_model, train_ds, val_ds)
+    
+    # 4. Entrenamiento Fase 2 (Fine Tuning)
+    history_finetune = run_fine_tuning(transfer_model, base_model, history_tl, train_ds, val_ds)
+    
+    end_time = time.time()
+    total_time = end_time - start_time
+    
+    # 5. Resultados y Visualización
+    full_val_acc = plot_combined_history(history_tl, history_finetune)
+    best_acc = max(full_val_acc)
+    
+    print_final_report(transfer_model, total_time, best_acc)
 
 if __name__ == "__main__":
-    # Puedes pedir la ruta por consola para probar rápido
-    train_model()
+    print(f"TensorFlow Version: {tf.__version__}")
+    print(f"GPU Available: {len(tf.config.list_physical_devices('GPU')) > 0}")
+    
+    # Ejecutar pipeline
+    main_pipeline()
