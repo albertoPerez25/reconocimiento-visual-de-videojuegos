@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, models, callbacks
 from tensorflow.keras.applications import EfficientNetV2B0
+from tensorflow.keras import mixed_precision
 from transformers import TFViTModel
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +16,9 @@ import PIL.Image
 import time
 from sklearn.metrics import classification_report, confusion_matrix
 import gc 
+
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_global_policy(policy)
 
 # Reproducibilidad
 SEED = 2025
@@ -51,7 +55,7 @@ print(f"Formato de imagen: {first_image.format}")
 
 # Parámetros Globales
 # Ajustamos las constantes al tamaño real detectado (debería ser 64x64)
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 IMG_HEIGHT = 854
 IMG_WIDTH = 480
 
@@ -203,6 +207,9 @@ callbacks_finetune = [
     # Seguimos guardando si superamos el récord
     callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
 ]
+
+tf.keras.backend.clear_session()
+gc.collect()
 
 print("\nFineTuning")
 history_finetune = transfer_model.fit(
