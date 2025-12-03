@@ -159,112 +159,116 @@ def build_transfer_model():
     model = keras.Model(inputs, outputs, name="Transfer_EfficientNetV2")
     return model, base_model
 
-    
 
-transfer_model, base_model = build_transfer_model()
-transfer_model.summary()
+def train_model():
+    transfer_model, base_model = build_transfer_model()
+    transfer_model.summary()
 
-transfer_model.compile(
-    optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-)
+    transfer_model.compile(
+        optimizer='adam',
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-callbacks_transfer = [
-    # Si no mejora en 5 capas se para
-    callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
-    callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
-]
+    callbacks_transfer = [
+        # Si no mejora en 5 capas se para
+        callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
+        callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
+    ]
 
-print("\nFeature Extraction")
-start_time_tl = time.time()
+    print("\nFeature Extraction")
+    start_time_tl = time.time()
 
-history_tl = transfer_model.fit(
-    train_ds,
-    epochs=20, # aprende rápido por lo que no necesitamos un numero alto
-    validation_data=val_ds,
-    callbacks=callbacks_transfer
-)
+    history_tl = transfer_model.fit(
+        train_ds,
+        epochs=20, # aprende rápido por lo que no necesitamos un numero alto
+        validation_data=val_ds,
+        callbacks=callbacks_transfer
+    )
 
-# FineTuning 
+    # FineTuning 
 
-# Descongelamos
-base_model.trainable = True
+    # Descongelamos
+    base_model.trainable = True
 
-# Re-compilamos Low Learning Rate
-# Usamos una velocidad de aprendizaje muy pequeña (1e-5).
-# Si le ponemos una velocidad mas alta corremos el riesgo de sobreescribir aprendizaje que era correcto
-transfer_model.compile(
-    optimizer=keras.optimizers.Adam(1e-5),
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-)
+    # Re-compilamos Low Learning Rate
+    # Usamos una velocidad de aprendizaje muy pequeña (1e-5).
+    # Si le ponemos una velocidad mas alta corremos el riesgo de sobreescribir aprendizaje que era correcto
+    transfer_model.compile(
+        optimizer=keras.optimizers.Adam(1e-5),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-callbacks_finetune = [
-    callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
-    # Seguimos guardando si superamos el récord
-    callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
-]
+    callbacks_finetune = [
+        callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
+        # Seguimos guardando si superamos el récord
+        callbacks.ModelCheckpoint('best_transfer.keras', monitor='val_accuracy', save_best_only=True, verbose=0)
+    ]
 
-print("\nFineTuning")
-history_finetune = transfer_model.fit(
-    train_ds,
-    epochs=20, 
-    initial_epoch=history_tl.epoch[-1],
-    validation_data=val_ds,
-    callbacks=callbacks_finetune
-)
+    print("\nFineTuning")
+    history_finetune = transfer_model.fit(
+        train_ds,
+        epochs=20, 
+        initial_epoch=history_tl.epoch[-1],
+        validation_data=val_ds,
+        callbacks=callbacks_finetune
+    )
 
-end_time_tl = time.time()
-tl_training_time = end_time_tl - start_time_tl
-print(f"\nTiempo total (Extraction + FineTuning): {tl_training_time:.2f} segundos")
+    end_time_tl = time.time()
+    tl_training_time = end_time_tl - start_time_tl
+    print(f"\nTiempo total (Extraction + FineTuning): {tl_training_time:.2f} segundos")
 
-acc = history_tl.history['accuracy'] + history_finetune.history['accuracy']
-val_acc = history_tl.history['val_accuracy'] + history_finetune.history['val_accuracy']
-loss = history_tl.history['loss'] + history_finetune.history['loss']
-val_loss = history_tl.history['val_loss'] + history_finetune.history['val_loss']
+    acc = history_tl.history['accuracy'] + history_finetune.history['accuracy']
+    val_acc = history_tl.history['val_accuracy'] + history_finetune.history['val_accuracy']
+    loss = history_tl.history['loss'] + history_finetune.history['loss']
+    val_loss = history_tl.history['val_loss'] + history_finetune.history['val_loss']
 
-# Graficamos
-plt.figure(figsize=(12, 5))
-plt.subplot(1, 2, 1)
-plt.plot(acc, label='Training Accuracy')
-plt.plot(val_acc, label='Validation Accuracy')
-plt.plot([len(history_tl.history['accuracy'])-1,len(history_tl.history['accuracy'])-1], 
-         plt.ylim(), label='Inicio Fine Tuning', ls='--') 
-plt.legend(loc='lower right')
-plt.title('Transfer Learning: Evolución de Precisión')
-plt.grid(True)
+    # Graficamos
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.plot([len(history_tl.history['accuracy'])-1,len(history_tl.history['accuracy'])-1], 
+            plt.ylim(), label='Inicio Fine Tuning', ls='--') 
+    plt.legend(loc='lower right')
+    plt.title('Transfer Learning: Evolución de Precisión')
+    plt.grid(True)
 
-plt.subplot(1, 2, 2)
-plt.plot(loss, label='Training Loss')
-plt.plot(val_loss, label='Validation Loss')
-plt.plot([len(history_tl.history['loss'])-1,len(history_tl.history['loss'])-1], 
-         plt.ylim(), label='Inicio Fine Tuning', ls='--')
-plt.legend(loc='upper right')
-plt.title('Transfer Learning: Evolución de Pérdida')
-plt.grid(True)
-plt.show()
+    plt.subplot(1, 2, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.plot([len(history_tl.history['loss'])-1,len(history_tl.history['loss'])-1], 
+            plt.ylim(), label='Inicio Fine Tuning', ls='--')
+    plt.legend(loc='upper right')
+    plt.title('Transfer Learning: Evolución de Pérdida')
+    plt.grid(True)
+    plt.show()
 
-# Comparativa 
+    # Comparativa 
 
-# Intentamos recuperar métricas de los modelos anteriores (si existen en memoria)
-try:
-    mlp_acc = max(history_mlp.history['val_accuracy'])
-    cnn_acc = max(history_cnn.history['val_accuracy'])
-    mlp_par = mlp_model.count_params()
-    cnn_par = cnn_model.count_params()
-except NameError:
-    mlp_acc, cnn_acc, mlp_par, cnn_par = 0, 0, 0, 0 # Ponemos ceros si no se corrieron antes
+    # Intentamos recuperar métricas de los modelos anteriores (si existen en memoria)
+    try:
+        mlp_acc = max(history_mlp.history['val_accuracy'])
+        cnn_acc = max(history_cnn.history['val_accuracy'])
+        mlp_par = mlp_model.count_params()
+        cnn_par = cnn_model.count_params()
+    except NameError:
+        mlp_acc, cnn_acc, mlp_par, cnn_par = 0, 0, 0, 0 # Ponemos ceros si no se corrieron antes
 
-tl_acc = max(val_acc)
-tl_par = transfer_model.count_params()
+    tl_acc = max(val_acc)
+    tl_par = transfer_model.count_params()
 
-print("\n" + "="*60)
-print("      COMPARATIVA FINAL DE ARQUITECTURAS")
-print("="*60)
-print(f"{'Modelo':<20} | {'Parámetros':<12} | {'Val Acc':<10} | {'Tiempo(s)':<10}")
-print("-" * 60)
-print(f"{'MLP (Básico)':<20} | {mlp_par:<12,} | {mlp_acc:.4f}     | {mlp_training_time if 'mlp_training_time' in locals() else 0:.1f}")
-print(f"{'CNN (Propia)':<20} | {cnn_par:<12,} | {cnn_acc:.4f}     | {cnn_training_time if 'cnn_training_time' in locals() else 0:.1f}")
-print(f"{'Transfer Learning':<20} | {tl_par:<12,} | {tl_acc:.4f}     | {tl_training_time:.1f}")
-print("-" * 60)
+    print("\n" + "="*60)
+    print("      COMPARATIVA FINAL DE ARQUITECTURAS")
+    print("="*60)
+    print(f"{'Modelo':<20} | {'Parámetros':<12} | {'Val Acc':<10} | {'Tiempo(s)':<10}")
+    print("-" * 60)
+    print(f"{'MLP (Básico)':<20} | {mlp_par:<12,} | {mlp_acc:.4f}     | {mlp_training_time if 'mlp_training_time' in locals() else 0:.1f}")
+    print(f"{'CNN (Propia)':<20} | {cnn_par:<12,} | {cnn_acc:.4f}     | {cnn_training_time if 'cnn_training_time' in locals() else 0:.1f}")
+    print(f"{'Transfer Learning':<20} | {tl_par:<12,} | {tl_acc:.4f}     | {tl_training_time:.1f}")
+    print("-" * 60)
+
+if __name__ == "__main__":
+    # Puedes pedir la ruta por consola para probar rápido
+    train_model()
