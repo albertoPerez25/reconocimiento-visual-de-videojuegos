@@ -62,13 +62,13 @@ def get_video_duration(video_path):
 def determine_interval(duration):
     """Determina el intervalo de captura basado en la duración del video."""
     if duration < 1800:                  # < 30 min
-        return 10
+        return 5
     elif 1800 <= duration < 7200:        # 30 min - 2 horas
-        return 30
+        return 15
     elif 7200 <= duration < 14400:       # 2 horas - 4 horas
-        return 60
+        return 30
     else:                                # > 4 horas
-        return 120
+        return 60
 
 def process_video(task, stats):
     """
