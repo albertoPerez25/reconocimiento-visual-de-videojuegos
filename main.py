@@ -55,9 +55,9 @@ print(f"Formato de imagen: {first_image.format}")
 
 # Parámetros Globales
 # Ajustamos las constantes al tamaño real detectado (debería ser 64x64)
-BATCH_SIZE = 8
-IMG_HEIGHT = 854
-IMG_WIDTH = 480
+BATCH_SIZE = 16
+IMG_HEIGHT = 480
+IMG_WIDTH = 854
 
 
 # Cargamos el dataset completo sin dividir inicialmente

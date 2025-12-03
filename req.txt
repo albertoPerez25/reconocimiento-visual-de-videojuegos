@@ -1,2 +1,8 @@
 yt_dlp
 tensorflow[and-cuda]
+transformers
+tf-keras
+matplotlib
+pandas
+seaborn
+scikit-learn
