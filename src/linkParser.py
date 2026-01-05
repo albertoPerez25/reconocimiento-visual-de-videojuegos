@@ -49,8 +49,13 @@ class videoFile():
                     char = self.flujo.NewCar()
                 
             videoLinks[title].extend(links)
+
+            # crear carpetas
+            folder_path = f"{OUTPUT_DIRECTORY}{title}"
+            os.makedirs(folder_path, exist_ok=True)
+            file_path = f"{folder_path}/{title}.txt"
             
-            with open(f"{OUTPUT_DIRECTORY}{title}/{title}.txt", 'w') as linksFile:
+            with open(file_path, 'w') as linksFile:
                 clean_links = self.stripList(videoLinks[title])
                 linksFile.write(clean_links)
             self.flujo.Devolver()
@@ -58,7 +63,7 @@ class videoFile():
         return videoLinks
          
 if __name__ == "__main__":
-    LinkParser = videoFile("./videos_primera_it.txt")
+    LinkParser = videoFile("../videos.txt")
 
     print(LinkParser.getVideoLinks())
 

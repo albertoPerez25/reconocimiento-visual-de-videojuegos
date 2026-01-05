@@ -10,7 +10,7 @@ from threading import Lock
 
 # ================= CONFIGURACIÓN =================
 class Config:
-    EXTERNAL_DIR = "../DatasetVideos/"
+    EXTERNAL_DIR = "../DatasetVideos/" # Carpeta donde guardar los frames
     INPUT_DIR = EXTERNAL_DIR       # Carpeta raíz donde buscar videos
     OUTPUT_SUFFIX = "_frames"    # Sufijo para la carpeta de salida
     MAX_WORKERS = 4              # Número de procesos simultáneos
@@ -60,15 +60,15 @@ def get_video_duration(video_path):
         raise Exception(f"No se pudo obtener duración: {e}")
 
 def determine_interval(duration):
-    """Determina el intervalo de captura basado en la duración del video."""
+    """Determina el intervalo de captura en segundos basado en la duración del video."""
     if duration < 1800:                  # < 30 min
-        return 5
+        return 4
     elif 1800 <= duration < 7200:        # 30 min - 2 horas
-        return 15
+        return 8
     elif 7200 <= duration < 14400:       # 2 horas - 4 horas
-        return 30
+        return 15
     else:                                # > 4 horas
-        return 60
+        return 30
 
 def process_video(task, stats):
     """
