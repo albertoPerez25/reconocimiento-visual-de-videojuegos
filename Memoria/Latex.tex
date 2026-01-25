@@ -1,0 +1,401 @@
+\documentclass[a4paper]{article}
+\usepackage[english,main=spanish]{babel}
+\usepackage[a4paper,top=2.1cm,bottom=4cm,left=3cm,right=3cm]{geometry} % Márgenes
+\usepackage{amsmath} % Matemáticas
+\usepackage{graphicx} % Usar imágenes
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}  % Para que las tildes se codifiquen bien en el PDF
+\usepackage{lmodern}      % Para arreglar los errores de tamaño de letra pixelada
+
+\usepackage[colorlinks=true, allcolors=blue,hidelinks]{hyperref} % Hipervínculos
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage[figurename=Figura]{caption}
+\usepackage{smartdiagram}
+\usepackage{zed-csp}
+\usepackage{scrextend}
+\usepackage{geometry}
+\usepackage{csquotes}
+\usepackage[
+backend=biber,
+style=ieee,
+sorting=ynt
+]{biblatex}
+\changefontsizes[14pt]{14pt}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{makecell}
+
+\definecolor{mentaFancy}{HTML}{a1ffd8}
+\definecolor{moradoOscuro}{HTML}{787cb8}
+\definecolor{moradoClaro}{HTML}{9ca1cd}
+\definecolor{azulOscuro}{HTML}{699bc8}
+\definecolor{azulClaro}{HTML}{a1c4de}
+\definecolor{mentaFancyClarito}{HTML}{b4d6ed}
+\definecolor{azulBorde}{HTML}{84c1ea}
+\definecolor{moradito}{HTML}{d3b8e9}
+\definecolor{moraditoBorde}{HTML}{a891bc}
+
+% Aquí están las variables para llamar a los archivos que insertamos
+\newcommand{\jhLogo}{./Imágenes/Logos/logoUCLMRecortado.png}
+\newcommand{\jhLogoA}{./Imágenes/Logos/logoESII2.png}
+\newcommand{\jhLogoL}{./Imágenes/Logos/logoUCLMRecortado.png}
+\newcommand{\startDate}{7/01/2025}
+\newcommand{\jhname}{Holow}
+\newcommand{\diagramaAnchura}{./Imágenes/Anchura.png}
+\newcommand{\diagramaProfundidad}{./Imágenes/Profundidad.png}
+\newcommand{\diagramaPrimeroElMejor}{./Imágenes/PrimeroElMejor.png}
+\newcommand{\diagramaAEstrella}{./Imágenes/AEstrella.png}
+\usepackage{subcaption}
+
+% Esto es para dar formato al documento
+\setlength{\headheight}{50pt}
+% \pagestyle{fancy}
+\fancyhf{}
+\lhead{\includegraphics[height=1.5cm,keepaspectratio]{\jhLogo}}\rhead{\includegraphics[height=1.5cm,keepaspectratio]{\jhLogoA}}
+\rfoot[]{\normalsize\thepage}
+
+\addbibresource{citas.bib}
+\newcommand{\vpar}{\par\vspace{0.25cm}}
+%\renewcommand{\section}{\section}
+%\titleformat{\section}[block]{\Large\normalfont\bfseries}{\thesection}{0.5em}{}
+
+\newcolumntype{Y}{>{\centering\arraybackslash\sloppy\hspace{0pt}}X}
+%\newcolumntype{Y}{>{\centering\arraybackslash\sloppy\hspace{0pt}}m{0.137458801\textwidth}}
+\renewcommand{\arraystretch}{1.8}
+
+\begin{document}
+
+    % ------------------------------------------
+    % Portada del documento
+    % ------------------------------------------
+
+    \begin{titlepage}
+
+    \centering
+
+    \par\vfill
+    {\scshape\Huge \textbf{Memoria del proyecto\\}}
+    \par\vspace{0.5cm}
+    {\Large Visión Artificial y Reconocimiento de Patrones, Curso 2025/2026}
+    \par\vspace{1cm}
+    {\large Modelo de reconocimiento de videojuegos\\}
+    \par\vspace{0.75cm}
+
+
+    \par\vfill
+
+    \begin{abstract}
+        Poner aquí resumen de nuestro proyecto uwu
+    \end{abstract}
+
+    \par\vfill
+
+    \par\vspace{0.25cm}
+    {Alberto Pérez Álvarez \& Pablo Oliva García\\}
+
+    \par\vspace{1cm}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth,height=10cm,keepaspectratio]{\jhLogo}
+    \end{figure}
+    \par\vspace{1cm}
+    {\large \today}
+
+    \par\vspace{0.5cm}
+
+    \end{titlepage}
+    % ------------------------------------------
+    % Índice
+    % ------------------------------------------
+
+    \clearpage
+    \tableofcontents{}
+    \clearpage
+
+    % ------------------------------------------
+    % Cuerpo del documento
+    % ------------------------------------------
+
+    \section{Introducción}
+
+        Para nuestro proyecto decidimos que queríamos hacer un clasificador de videojuegos a partir de capturas de pantalla del \textit{gameplay}. Para ello, estuvimos valorando diferentes opciones, como usar un perceptrón, una red convolucional o un modelo pre-entrenado. Al final, decidimos que lo mejor sería probar todos los modelos y quedarnos con el mejor para esta tarea. \\
+
+        En línea con esta idea, hemos desarrollado un \textit{notebook} que entrena a diversos modelos con una versión del \textit{dataset} reducido y con épocas reducidas para disminuir el tiempo de entrenamiento. Con esos modelos entrenados, extraemos varias métricas y gráficas para compararlos y valorar cuál es el mejor. \\
+
+        Para crear el \textit{dataset} buscamos varios vídeos de \textit{gameplays} de los distintos videojuegos para extraer fotogramas de dichos vídeos y que sirvan de capturas de pantalla. La clasificación de los videojuegos se hizo manual, puesto que solo había que clasificar unos pocos vídeos de varias horas y todos los fotogramas extraídos estarían ya clasificados.
+
+    \section{Creación del \textit{dataset}}
+        Al  inicio, pensábamos usar algún \textit{dataset}  ya creado en internet, pero tras no encontrar ninguno que nos convenciera, decidimos hacerlo nosotros mismos. La idea, como ya hemos comentado, era simple: descargarnos varios vídeos de Youtube de distintos videojuegos y extraer sus fotogramas.
+
+        \subsection{Obtención de los vídeos}
+            Para descargar los vídeos, usamos un \textit{script} en \textit{Python} que hacía uso de la librería \textit{yt-dlp}. Esta librería permitía descargar los vídeos de los enlaces almacenados en un documento, por lo que decidimos recopilar varios vídeos y poner cada enlace en un archivo \textit{.txt} con el nombre del juego al que pertenecían. \\
+
+            Una vez creados todos los ficheros, fue tan simple como indicarle a \textit{yt-dlp} que almacenara cada vídeo en una carpeta con el mismo nombre que el fichero dado y esperar unas horas hasta la finalización de las descargas. Para agilizar un poco las descargas, decidimos hacerlas en paralelo.
+
+        \subsection{Extracción de \textit{frames}}
+            La mejor utilidad que encontramos para la extracción de los fotogramas fue \textit{ffprobe} de \textit{FFmpeg}.  En otro script \textit{Python} le pasábamos por argumento la localización de cada vídeo y la carpeta destino (una con el mismo nombre del videojuego, para mantener las categorías). \\
+
+            Aquí nos encontramos con una decisión que tomar, el número de fotogramas a extraer por vídeo. Al final nos decantamos por hacerlo inversamente proporcional a la longitud de este, por lo que a más largo el vídeo menos fotogramas extraíamos. Esto lo decidimos así pues los vídeos variaban mucho en longitud según el juego (los más antiguos tienen una duración inferior a la hora, mientras que los nuevos pueden llegar a las 70 sin problema). \\
+
+            Para hacer la extracción más rápido, creamos varios hilos para ejecutar varias instancias de \textit{ffprobe} en paralelo. De esta manera, pudimos tener todos los fotogramas extraídos en 6 horas usando un portátil convencional.
+
+        \subsection{Problemas}
+            El mayor problema con el que nos encontramos fue el cuello de botella creado por la CPU al cargar las imágenes individuales del \textit{dataset}. Al principio, simplemente cargábamos todo en RAM, pero cuando el \textit{dataset} creció, esta opción pasó a ser inviable. Al tener que cargar cientos de imágenes del disco en la inferencia, vimos como la GPU no se utilizaba al completo mientras la CPU daba más. \\
+
+            La solución que encontramos fue convertir el formato del dataset. Al inicio usábamos las imágenes en formato \textit{.jpg} para ahorrar espacio, pero investigando nos encontramos con los \textit{datasets} en formato \textit{.tfrec}. El formato \textit{TFRecords} es un formato binario basado en \textit{Protocol Buffers}\ diseñado para el almacenamiento eficiente de secuencias de datos. Al serializar las imágenes y agruparlas en ficheros más grandes, conseguimos reducir drásticamente la sobrecarga del sistema de archivos, permitiendo una lectura secuencial de alta velocidad que aprovecha al máximo el ancho de banda de la memoria y el disco.
+
+        \subsection{Resultados}
+            Antes de intentar crear el \textit{dataset} completo, decidimos hacer uno de prueba, simplemente para ver si nuestro proceso funcionaba e ir probando modelos. Este era un \textit{dataset} ``de juguete'', que únicamente tenía 6 videojuegos y unas 600 imágenes de cada uno. \\
+
+            Cuando obtuvimos buenos resultados para nuestros modelos decidimos crear el \textit{dataset} completo, esta vez con 31 videojuegos distintos y usando todos los vídeos que pudimos encontrar de cada uno. El resultado es un \textit{dataset} de más de 160.000 imágenes provenientes de distintos vídeos para cada juego. Aunque intentamos que estuviera algo balanceado, al final las disparidades (tanto el número de vídeos, como la longitud de estos) entre juegos fue demasiada, por lo que el número de ejemplos para cada juego varía entre las 860 para el que menos hasta las 16000 para el que más (ver \textit{la Figura 1} ).  La media de número de imágenes por clase es $5265.90$, mientras que la desviación estándar se encuentra en $3264.62$.\\
+
+            \begin{figure}
+                \centering
+                \includegraphics[width=1\linewidth]{Imágenes/resultados_dataset.png}
+                \caption{Distribución de imágenes por clases}
+                \label{fig:placeholder}
+            \end{figure}
+
+            Para facilitar el entrenado y \textit{testeo} de modelos, decidimos crear otra versión del \textit{dataset} totalmente balanceada y de tamaño intermedio.\\
+
+    \section{Código desarrollado}
+        Hemos usado varias librerías de TensorFlow, la más relevante es Keras. TensorFlow se encarga de manejar tensores y grafos para los modelos a bajo nivel, mientras que Keras funciona a un nivel más alto, facilitando el uso de distintos modelos. Al cargar los datos, dividimos el \textit{dataset} en tres particiones, \textit{train}, \textit{validation} y \textit{test}.\\
+        \begin{itemize}
+            \item \textit{Train}: Esta partición es aproximadamente el 70\% de los datos. La usamos para entrenar a los modelos.
+            \item \textit{Test}: En esta partición se encuentra un 15\% de los datos. Es usada para el \textit{Early Stop} y otros hiperparámetros de los modelos.
+            \item \textit{Test}: El 15\% restante. La usamos únicamente para las gráficas y puntuaciones finales de cada modelo.\\
+        \end{itemize}
+        Esta partición de datos es necesaria para evitar ser extremadamente optimista en la puntuación de los modelos, que pueden haber realizado un sobreajuste a sus datos de entrenamiento.\\
+
+        Para contrarrestar el desbalanceo del \textit{dataset}, calculamos pesos para cada clase. Estos pesos son inversamente proporcionales al número de ejemplos de cada clase, por lo que los modelos le darán prioridad a aprender los patrones de ejemplos pertenecientes a clases minoritarias, pues son más escasos.\\
+
+        \subsection{Gráficas para cada modelo}
+            graficaaaaaaaas
+        \subsection{Gráficas para comparar modelos}
+            mas graficaaaaaaaaaaaaaas
+
+    \section{Modelos entrenados}
+        Como comentábamos, hemos entrenado diversos modelos. A continuación explicaremos cada modelo y por qué lo consideramos como candidato.
+        \subsection{Modelos propios}
+            Estos modelos los hicimos para tener un \textit{baseline} a partir del cual ir mejorando.
+            \subsubsection{Perceptrón multicapa}
+                Aunque los MLP no son la mejor opción para la clasificación de imágenes (debido a su enorme cantidad de parámetros y pérdida de información local), decidimos hacer uno para poder comparar resultados con las CNNs. \\
+
+                Lo primero que hacemos es un \textit{Data Augmentation}, en dónde aplicamos transformaciones aleatorias a las imágenes de entrenamiento para evitar el sobreajuste del modelo. Nuestro objetivo es que el modelo aprenda los patrones verdaderos de las imágenes, haciéndolo resistente a variaciones de posiciones, ruido u otras alteraciones.\\
+
+                Una vez hecha una normalización \textit{min-max} de los datos entre 0 y 1, aplanamos las imágenes en un vector, pues el MLP no puede trabajar con matrices. Como consecuencia, se pierde la información espacial y se trata la imagen como una lista de números simple.\\
+
+                Para las distintas capas densas vamos reduciendo la imagen, obligando a las neuronas a mantener solo la información fundamental.  Como función de activación usamos la ReLU (max(0,x), que descarta los valores negativos. Es la función de activación lo que permite a las redes neuronales aprender patrones no lineales.\\
+
+                La capa final tiene el papel de tomar la decisión sobre qué clase es la imagen. Con la función \textit{Softmax} convierte el resultado numérico de cada neurona en una probabilidad. Como en esta capa cada neurona representa a una clase, la que tenga mayor probabilidad será la clase predicha por el MLP.\\
+
+                Adicionalmente hemos implementado \textit{Early Stopping}, por lo que si durante el entrenamiento no se mejora la puntuación de validación en varias épocas seguidas, se terminará el entrenamiento aunque no se hayan completado todas la épocas. Para intentar evitar aún más el \textit{overfitting} decidimos agregar un \textit{dropout}. Con esta técnica el modelo ``apaga'' aleatoriamente algunas neuronas durante el entrenamiento, obligando al resto a no depender exclusivamente de una neurona y agregando otra capa de defensa ante el \textit{overfitting} \\
+
+                Para las posteriores gráficas y comparativas, guardamos un \textit{Checkpoint} de la mejor versión del modelo. Además, el MLP es el único modelo que no usa un tamaño de imagen $224\times224$, sino $64\times64$ para evitar la ``explosión de parámetros''. \\
+
+                TODO: Resultados
+
+            \subsubsection{Red convolucional}
+                Las redes convolucionales están se ajustan mucho mejor para la visión por ordenador, pues pueden mantener la geometría espacial de la imagen mientras también usan menos memoria.
+
+                Para el \textit{Data Augmentation} de este modelo hemos añadido cambios en el contraste, brillo y \textit{zoom} de las imágenes. Respecto a las capas de la red, ya no es necesario aplanar la imagen al inicio. Primero se pasa por cuatro iteraciones de Convolución → Normalización → \textit{Max Pooling}.
+                \begin{itemize}
+                    \item Capas de convolución: Empiezan con 32 filtros y suben hasta 256. Los primeros actúan como detectores de bordes y esquinas, y a medida que se profundiza los filtros empiezan a combinar esos bordes para detectar formas más complejas.
+                    \item Capas de normalización: Normaliza los datos entre capa y capa. Permite que el modelo aprenda más rápido y sea menos sensible a la inicialización de los pesos.
+                    \item Capas de \textit{pooling}: Reducen la resolución de la imagen combinando los píxeles de la ventana. Ayudan a que el modelo sea invariante a la traslación, pues se quedan con lo más importante del vecindario.\\
+                \end{itemize}
+
+                Antes de pasar a la capa profunda, sigue siendo necesario ``aplanar'' las matrices. Al principio usábamos el mismo \textit{flatten} que en el MLP, pero conforme agregamos más datos el uso de RAM subió hasta ser intratable. Como alternativa usamos \textit{Global Average Pooling}, que reduce drásticamente la cantidad de parámetros al tomar el promedio de cada uno de los mapas de características.\\
+
+                Tanto el \textit{dropout} como el \textit{Early Stopping} son más agresivos en el CNN, pues este modelo tarda más por época y por lo general converge antes que el MLP.\\
+
+        \subsection{Transfer Learning de CNN}
+            Para intentar conseguir más precisión, decidimos probar modelos ya entrenados y ajustarlos a nuestro \textit{dataset}. Esto se conoce como \textit{Transfer Learning}, y permite conseguir mayores puntuaciones sin tantos datos. Las redes que hemos probado son entrenadas por compañías con muchos recursos computacionales en \textit{datasets} genéricos pero enormes. \\
+
+            Nosotros simplemente eliminamos la última capa de predicción y entrenamos una nueva junto a un pequeño ajuste de algunas capas profundas para que aprenda las características específicas de nuestro caso de uso, pues se supone que ya ha aprendido a reconocer formas. Esto lo hacemos en dos etapas:
+            \begin{itemize}
+                \item \textit{Feature Extraction}: Congelamos todo el modelo, impidiéndole actualizar pesos para entrenar, sólo entrenamos las nuevas capas para evitar que los nuevos gradientes sobrescriban los pesos que el modelo ya había aprendido.
+                \item  \textit{Fine-tuning}: Descongelamos únicamente las últimas capas para que se adapten a nuestras imágenes. Es necesario usar una tasa de aprendizaje mínima para evitar el llamado ``olvido catastrófico'', donde el modelo olvida todo lo aprendido previamente.\\
+            \end{itemize}
+
+            Para reducir el uso de memoria, introducimos una limpieza de \textit{keras}, para forzar a la librería a eliminar la ``basura''. Para cada modelo hacemos un preprocesamiento específico.\\
+            \subsubsection{EfficientNetV2B0}
+                La mayoría de modelos se hacen más grandes añadiendo capas o canales. Sin embargo, EfficientNet escala también la resolución de imagen y usa convoluciones especiales en las primeras capas.\\
+            \subsubsection{ResNet50V2}
+                Aunque es la más antigua, también es la que introdujo una solución al problema del desvanecimiento de gradiente. Este problema ocurre en redes muy profundas, en las que al multiplicar números muy pequeños entre sí producía un \textit{underflow}. ResNet soluciona esto introduciendo una función identidad que sirve como atajo para el gradiente.\\
+            \subsubsection{ConvNeXtTiny}
+                Esta CNN la incluimos al parecernos muy interesante. ConvNext intenta replicar la estructura de los Transformers en una CNN. Al igual que en estos, se usan parches, filtros grandes y versiones más modernas de ciertas capas. Gracias a estos cambios ConvNext ofrece un gran rendimiento, aunque siendo más pesada que otras CNNs.\\
+
+        \subsection{Transfer Learning de transformer}
+        Los modelos tipo \textit{Transformer} dividen la imagen en parches. Los que hemos probado son de HuggingFace, escritos en PyTorch. Esto es un problema pues Keras espera formatos de salida distintos. Para solventarlo, tenemos una clase \textit{Wrapper} que traduce los datos entre los dos formatos.\\
+
+        Además, estos modelos esperan imágenes en formato NCHW, (Canales × Alto × Ancho), mientras que TensorFlow usa el formato NHWC (el canal al final), Para solucionarlo introducimos una capa para permutar la posición de las capas.
+
+        Respecto al \textit{data augmentation}, es prácticamente igual al de las CNNs, con la principal diferencia de que la rotación tiene que ser baja. Esto es por los \textit{Positional Embeddings} de los \textit{Transformers}, que indican en qué posición se encuentran los parches. Si rotáramos mucho la imagen esta lógica se rompería, y por tanto la precisión del modelo bajaría.\\
+
+            \subsubsection{google/vit-base}
+                Es el pionero, divide la imagen en parches de 16×16. Suele necesitar muchos datos para funcionar bien, además de que es muy pesado computacionalmente.
+            \subsubsection{apple/mobilevit-small}
+                Combina capas de convolución al principio para texturas y \textit{Transformers} al final para el contexto global. Funciona mucho mejor que ViT con pocos datos y es muy eficiente.
+            \subsubsection{facebook/deit}
+                Una modificación de ViT que usa \textit{Destillation}. Deja de aprender únicamente de las imágenes para fijarse también en las respuestas de una CNN durante el entrenamiento. Necesita menos datos que ViT.
+
+        \subsection{Comparativa entre modelos}
+            Poner capturas de las gráficas de cada modelo y de las comparativas entre modelos y explicar qué es cada resultado
+
+            Me harías un favorazo enorme si te descargas el notebook del kaggle y lo metes al repo para tener las salidas :D es que aún no están ayer se me olvido ejecutarlo xd
+
+        \subsection{Conclusiones}
+            Concluir cuál es el mejor modelo y por qué. Hablar sobre si era esperable o no y nuestras impresiones del experimento.
+
+    \section{Modelo principal}
+        \subsection{Entrenamiento}
+            Una vez seleccionado un modelo, el ViT, lo hemos entrenado en otra libreta con el \textit{dataset} completo. \\
+
+            Para ello hemos reutilizado el código del entrenamiento que ya teníamos, adaptándolo un poco para compactarlo y optimizarlo aprovechando que solo tenemos un modelo en la libreta. \\
+
+            Para el entrenamiento decidimos darle 2 épocas normales y 5 épocas de \textit{fine tuning}, para intentar evitar sobrepasar las 12h límites de Kaggle. Sin embargo, como el entrenamiento duró aproximadamente 9h, volvimos a entrenarlo con una época de \textit{fine tuning} extra para ver si daba mejor \textit{score} y mejores resultados. Los resultados de estos entrenamientos se pueden ver en la figura \ref{fig:scoresViT}.\\
+
+            \begin{figure}[h]
+                \centering
+                \begin{subfigure}[h]{0.49\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/Score2-5.jpeg}
+                    \caption{Con 5 épocas}
+                    \label{subfig:score_2_5}
+                \end{subfigure}
+                \begin{subfigure}[h]{0.49\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/Score2-6.png}
+                    \caption{Con 6 épocas}
+                    \label{subfig:score2_6}
+                \end{subfigure}
+                \caption{Salida del fin de los entrenamientos}
+                \label{fig:scoresViT}
+            \end{figure}
+            \FloatBarrier
+
+            Vemos que el \textit{f1-score} es ligeramente superior ($0.9720$ vs $0.9732$). Sin embargo, al final nos quedamos con el primer modelo que tenía solo 5 épocas de \textit{fine tuning}. Esto es así porque, a pesar de que el segundo modelo daba mejores resultados en muchas pruebas, daba peores resultados al ser probado con imágenes de internet, por lo que dedujimos que estaba empezando a hacer \textit{overfitting}.
+
+        \subsection{Demostración y análisis de los resultados}
+            Para probar nuestro modelo, hemos incorporado al final del cuaderno diversas demos o pruebas. \\
+
+            La primera de ellas es una demostración con imágenes \textit{in-the-wild}. Es decir, imágenes que hemos escogido aleatoriamente de Google Imágenes y que no estaban en el \textit{dataset}. Hemos intentado escoger imágenes que fueran interesantes o que creyéramos que fueran a ser difíciles para el modelo, como partes de cinemáticas, \textit{trailers}, carátulas o imágenes promocionales, además de imágenes que fueran partes de \textit{gameplays}. \\
+
+            No hemos puesto imágenes de todas las clases ya que serían demasiadas, pero hemos probado en total con 10 videojuegos. \\
+
+            En la figura \ref{fig:test-in-the-wild} se pueden ver los resultados de esta prueba. De un total de 49 imágenes, el modelo ha acertado 38 ($77.55\%$) y ha fallado 11 ($22.45\%$). Los resultados de la prueba se pueden ver más cómodamente en la libreta proporcionada del proyecto. \\
+
+            Si nos fijamos, la mayoría de los fallos que ha tenido han sido por imágenes promocionales, carátulas o, en general, imágenes que no se suelen ver en los \textit{gameplays}. \\
+
+            Aun así, hay algunas imágenes de este estilo que sí ha acertado con éxito, como la primera del Among Us. \\
+
+            \begin{figure}[h]
+                \centering
+                \begin{subfigure}[h]{0.49\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/output.png}
+                    \caption{Aciertos}
+                    \label{subfig:aciertos-in-the-wild}
+                \end{subfigure}
+                \begin{subfigure}[h]{0.49\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/output_fails.png}
+                    \caption{Fallos}
+                    \label{subfig:fallos-in-the-wild}
+                \end{subfigure}
+                \caption{Demo con imágenes \textit{in-the-wild}}
+                \label{fig:test-in-the-wild}
+            \end{figure}
+
+            Gracias a los \textit{heatmaps} de atención hemos podido ver que muchas veces se fija en el personaje principal o la interfaz para predecir la imagen. Sin embargo, también hemos visto que muchas veces se fija en partes aparentemente irrelevantes o casi que aleatorias. \\
+
+            Debido a la cantidad de información que ofrecen estos \textit{heatmaps}, los hemos incorporado en todas las pruebas del modelo. \\
+
+            La siguiente prueba que hemos hecho ha sido una predicción en tiempo real de un vídeo. El vídeo es un fragmento de \textit{gameplay} que no incluimos en el \textit{dataset}, y que ha sido específicamente seleccionado por contener varias pantallas de carga y situaciones difíciles para el modelo. \\
+
+            Cabe destacar que es el vídeo seleccionado es el cuarto de varios intentos, puesto que los otros 3 anteriores vídeos con los que probamos predecía correctamente el videojuego el $100\%$ del tiempo con un $100\%$ de confianza, por lo que no eran interesantes. \\
+
+            Aunque no podemos mostrar el vídeo en esta memoria, se puede ver en la libreta o en el vídeo de presentación. Además, la prueba también generaba un gráfico que muestra durante cuánto tiempo relativo ha estado prediciendo cada clase, como se puede ver en la figura \ref{fig:grafica-Video}.
+
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.8\linewidth]{Imágenes/grafica_videoHades.png}
+                \caption{Estadísticas de la predicción}
+                \label{fig:grafica-Video}
+            \end{figure}
+
+            El modelo ha predicho correctamente el videojuego durante el $88.9\%$ del tiempo. La mayoría del tiempo que ha estado prediciendo otra clase ha sido en pantallas de carga que son casi totalmente negras. \\
+
+            Por último, hemos hecho una prueba de robustez. Esta prueba coge una imagen de varios videojuegos que predice correctamente, y la distorsiona con ruido y desenfoque para ver hasta qué punto sigue acertando. En la figura \ref{fig:test-robustez} se muestran 4 salidas que creemos que son interesantes. La salida completa de la prueba se puede ver en la libreta.\\
+
+            \begin{figure}[htbp]
+                \centering
+                \begin{subfigure}[b]{0.48\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/robustez_GTAV.png}
+                    \caption{GTA V}
+                    \label{subfig:robus_GTAV}
+                \end{subfigure}
+                \hfill
+                \begin{subfigure}[b]{0.48\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/robustez_Minecraft.png}
+                    \caption{Minecraft}
+                    \label{subfig:robus_Minecraft}
+                \end{subfigure}
+
+                \vspace{0.5cm}
+
+                \begin{subfigure}[b]{0.48\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/robustez_Pokemon.png}
+                    \caption{Pokemon}
+                    \label{subfig:robus_Pokemon}
+                \end{subfigure}
+                \hfill
+                \begin{subfigure}[b]{0.48\textwidth}
+                    \centering
+                    \includegraphics[width=1\linewidth]{Imágenes/robustez_Undertale.png}
+                    \caption{Undertale}
+                    \label{subfig:robus_Undertale}
+                \end{subfigure}
+
+                \caption{Prueba de robustez}
+                \label{fig:test-robustez}
+            \end{figure}
+
+            De esta prueba hemos sacado ciertas observaciones interesantes. En primer lugar, en general, cuando se difumina la imagen, la atención suele pasar de estar muy concentrada en algunos puntos a repartirse más por toda la imagen. Esto tiene sentido ya que al difuminar la imagen los detalles finos desaparecen. \\
+
+            Otra observación que hemos tenido ha sido que, en general, el modelo tiene bastante robustez ante estas alteraciones. Achacamos este hecho a que, al entrenar el modelo, se aumentaba el \textit{dataset} con versiones de las imágenes originales transformadas o distorsionadas. Podemos concluir que el proceso fue efectivo. \\
+
+            Por último, también hemos visto cómo, aunque muchas veces se sigue fijando en las mismas partes de la imagen, a medida que se altera la imagen el modelo empieza a fijarse en otras secciones o áreas. Por ejemplo, en la prueba de ruido con Undertale, a medida que el ruido aumentaba dejaba de fijarse en el entorno y se anclaba más en elementos distintivos como el punto de guardado.
+
+
+            \FloatBarrier
+    \section{Conclusiones finales}
+        A pesar de las dificultades que hemos ido encontrando, hemos conseguido hacer un modelo funcional que cumple con nuestro objetivo. El proyecto, además, nos ha permitido profundizar en la teoría que hemos visto y comprenderla mejor. \\
+
+        Como posibles mejoras a futuro consideramos que se podría ampliar el \textit{dataset} para incluir más variedad de videojuegos y más ejemplos por clase. También se podrían probar más variedad de modelos por si encontrásemos alguno que funcione mejor que el ViT. Por último, creemos que también se podría experimentar con la combinación de épocas de entrenamiento y de \textit{fine tuning} para encontrar la combinación que mejor rendimiento saque. \\
+
+        En general, sentimos que este proyecto ha sido satisfactorio, tanto porque hemos conseguido crear un modelo funcional como porque hemos aprendido mucho en el proceso de realizarlo. Estamos contentos con el viaje que hemos recorrido y con el resultado que hemos alcanzado.
+
+
+    %\section{Bibliografía}
+    \clearpage
+    \printbibliography[
+    heading=bibintoc,
+    title={Bibliografía}
+    ]
+
+
+
+\end{document}\textbf{}
